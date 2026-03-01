@@ -9,9 +9,30 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/smnthjm08/exchange/internal/connections"
+	"github.com/smnthjm08/exchange/internal/env"
+	"github.com/smnthjm08/exchange/internal/models"
 )
 
+type config struct {
+	port  string
+	dbURL string
+}
+
 func main() {
+
+	config := config{
+		port:  env.String("PORT", "5002"),
+		dbURL: env.MustString("DATABASE_URL"),
+	}
+
+	connections.ConnectDatabase(config.dbURL)
+
+	err := connections.DB.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("migration failed:", err)
+	}
+
 	r := chi.NewRouter()
 
 	// TODO this can be enabled later
@@ -50,8 +71,8 @@ func main() {
 
 		// auth
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/signin", func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("signin endpoint"))
+			r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("login endpoint"))
 			})
 
 			r.Post("/signup", func(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +98,7 @@ func main() {
 		w.Write([]byte("method is not valid"))
 	})
 
-	log.Println("Exchange backend starting 🚀")
-	log.Fatal(http.ListenAndServe(":3000", r))
+	log.Println("exchange backend starting 🚀")
+	log.Printf("running at http://localhost:%s", config.port)
+	log.Fatal(http.ListenAndServe(":"+config.port, r))
 }
