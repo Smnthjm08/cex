@@ -1,55 +1,26 @@
-tmp
-.env
-bin/
+# Rust build files
+/target/
+**/target/
 
-.envrc
+# Cargo package files
+# Cargo.lock
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Backup and temp files
+*.rs.bk
+*.swp
+*.swo
+*~
 
-node_modules
-dist
-dist-ssr
-*.local
+# IDE and editor files
+.idea/
+.vscode/
+*.code-workspace
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# OS generated files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-# .vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Test output
+/coverage/
+debug/
+release/

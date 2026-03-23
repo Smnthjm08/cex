@@ -1,3 +1,3 @@
-# exchange
+# cex
 
-exchange API built using go
+Centralised exhange built on rust.
