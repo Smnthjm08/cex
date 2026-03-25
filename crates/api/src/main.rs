@@ -1,6 +1,9 @@
+use std::sync::Mutex;
+
 use actix_web::{
-    App, HttpResponse, HttpServer, Responder, delete, get, post,
+    delete, get, post,
     web::{self, Json},
+    App, HttpResponse, HttpServer, Responder,
 };
 use serde::{Deserialize, Serialize};
 
@@ -24,7 +27,7 @@ struct DeleteOrderInput {
 
 #[derive(Debug, Serialize)]
 struct DeleteOrderResposne {
-    filled_qty: u32,
+    filled_quantity: u32,
     avg_price: u32,
 }
 
@@ -46,12 +49,10 @@ struct CreateOrderInput {
 // GET - orders/depth
 
 #[get("/depth")]
-async fn get_depth(data: web::Data<OrderBook>) -> impl Responder {
-    HttpResponse::Ok().json(DepthResponse {
-        bids: vec![],
-        asks: vec![],
-        order_id_index: String::from("1232323"),
-    })
+async fn get_depth(data: web::Data<Mutex<OrderBook>>) -> impl Responder {
+    let ob = data.lock().unwrap();
+    let depth = ob.get_depth();
+    HttpResponse::Ok().json(depth)
 }
 
 // POST - orders/
@@ -59,24 +60,25 @@ async fn get_depth(data: web::Data<OrderBook>) -> impl Responder {
 #[post("/")]
 async fn create_order(
     Json(body): Json<CreateOrderInput>,
-    data: web::Data<OrderBook>,
+    data: web::Data<Mutex<OrderBook>>,
 ) -> impl Responder {
-    let price = body.price;
-    let quantity = body.quantity;
-    let user_id = body.user_id;
-    let side = body.side;
+    let mut ob = data.lock().unwrap();
+    // let price = body.price;
+    // let quantity = body.quantity;
+    // let user_id = body.user_id;
+    // let side = body.side;
 
     println!("create order body: {:?}", body);
 
-    // data.into_inner().
+    let order_id = ob.create_order(body.price, body.quantity, body.user_id, body.side);
 
-    return HttpResponse::Ok().json(CreateOrderResponse {
-        order_id: 1,
-        price,
-        quantity,
-        user_id,
-        side,
-    });
+    HttpResponse::Ok().json(CreateOrderResponse {
+        order_id,
+        price: body.price,
+        quantity: body.quantity,
+        user_id: body.user_id,
+        side: body.side,
+    })
 }
 
 // DELETE - orders/
@@ -84,25 +86,27 @@ async fn create_order(
 #[delete("/")]
 async fn delete_order(
     Json(body): Json<DeleteOrderInput>,
-    data: web::Data<OrderBook>,
+    _data: web::Data<Mutex<OrderBook>>,
 ) -> impl Responder {
     let order_id = body.order_id;
 
     println!("delete order body: {:?}", order_id);
 
     return HttpResponse::Ok().json(DeleteOrderResposne {
-        filled_qty: 21,
+        filled_quantity: 21,
         avg_price: 100,
     });
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let orderbook = web::Data::new(Mutex::new(OrderBook::new()));
+
+    HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(OrderBook::new()))
+            .app_data(orderbook.clone())
             .service(
-                web::scope("/order")
+                web::scope("api/v0/order")
                     .service(get_depth)
                     .service(create_order)
                     .service(delete_order),
