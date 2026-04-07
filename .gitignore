@@ -24,3 +24,5 @@ Thumbs.db
 /coverage/
 debug/
 release/
+
+.env
