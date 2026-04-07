@@ -5,6 +5,7 @@ mod handlers;
 mod models;
 mod routes;
 mod types;
+mod utils;
 
 use crate::db::connection::connect;
 use crate::routes::{auth_routes::auth_routes, orders_routes::orders_routes};

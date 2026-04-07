@@ -1,4 +1,15 @@
-#[derive(Debug)]
+use::serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+pub struct RegisterPayload {
+    pub email: String,
+    pub username: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub password_hash: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct LoginPayload{
     pub email: String,
     pub password: String
