@@ -12,7 +12,7 @@ pub async fn login(payload: web::Json<LoginPayload>, pool: web::Data<PgPool>) ->
 
     match get_user_by_email(&pool, &payload.email).await {
         Ok(Some(user)) => {
-            if user.password_hash != payload.password {
+            if user.password_hash != payload.password_hash {
                 return HttpResponse::Unauthorized().json("Invalid credentials");
             }
 
@@ -50,11 +50,15 @@ pub async fn register(
     let payload = payload.into_inner();
 
     match get_user_by_email(&pool, &payload.email).await {
-        Ok(_) => {
+        Ok(Some(_)) => {
             return HttpResponse::BadRequest().json("User already exists");
         }
-        Err(_) => {
-            // continue
+        Ok(None) => {
+            // continue to create user
+        }
+        Err(e) => {
+            println!("DB error: {:?}", e);
+            return HttpResponse::InternalServerError().finish();
         }
     }
 
